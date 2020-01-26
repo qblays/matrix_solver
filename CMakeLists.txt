@@ -24,6 +24,7 @@ endforeach()
 #     message(STATUS "${_srcName}")
 # endforeach()
 
+
 #add_executable(prog ${sources})
 #set(CXX_FLAGS "-O3 --fast-math -Wall -march=native")
 set(CXX_FLAGS "-O0 -Wall -g")
