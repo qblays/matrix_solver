@@ -27,7 +27,7 @@ endforeach()
 
 #add_executable(prog ${sources})
 #set(CXX_FLAGS "-O3 --fast-math -Wall -march=native")
-set(CXX_FLAGS -Wall -g -Og -fsanitize=address)
+set(CXX_FLAGS -Wall -g -O0 -fsanitize=address)
 set(CMAKE_EXE_LINKER_FLAGS -fsanitize=address)
 #add_compile_options(-O3 --fast-math -Wall)
 add_compile_options(${CXX_FLAGS})

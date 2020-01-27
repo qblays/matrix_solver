@@ -52,6 +52,13 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       MPI_Scatter (get_bl (rows_p, 0, I, m), m * m * I, MPI_DOUBLE,
                    column_thread, m * n, MPI_DOUBLE, I % commSize,
                    MPI_COMM_WORLD);
+      printf ("Temp: \n");
+      print_matrix_b_upper (Temp, m);
+      if (I > 0)
+        {
+          printf ("column thread: \n");
+          print_matrix (column_thread, m);
+        }
       for (int k = 0; k < I; k++)
         {
 // minus_RTDRu_o1 (Temp, column_thread + k * m * m, d + k * m, m);
@@ -77,8 +84,12 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       // !!!!MPI_Scatter (D, m, MPI_DOUBLE, d + I * m, m, MPI_DOUBLE, I %
       // commSize,
       //              MPI_COMM_WORLD);
+      printf ("Temp: \n");
+      print_matrix_b_upper (Temp, m);
       memcpy (d + I * m, D, m * sizeof (double));
       ret = std::max (reverse_upper (Temp, Revrsd, m, norma), ret);
+      printf ("Revrsd: \n");
+      print_matrix_b_upper (Revrsd, m);
       if (ret == 1)
         return ret;
       int J;
@@ -113,8 +124,8 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
 #endif
                 }
               DRtA (Revrsd, A, D, m);
-              // printf ("drta I= %d, J=%d, ofsset = %d\n", I, J, A - a);
-              // print_matrix (Temp, m);
+              printf ("drta I= %d, J=%d\n", I, J);
+              print_matrix (A, m);
               // memcpy (A, Temp, m * m * sizeof (double));
             }
         }
@@ -123,12 +134,12 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
         {
           l = n - N * m;
           // !double *A = &a[get_bl (I, J, u, b)];
-          double *A = get_bl (rows_p, I, J, m);
+          double *A = get_bl (rows_p, I, J, m, l);
           // !memcpy (Temp, A, m * l * sizeof (double));
           for (int k = 0; k < I; k++)
             {
               minus_RTDR_l_o1 (A, column_thread + k * m * m, d + k * m,
-                               get_bl (rows_p, k, J, m), m, l);
+                               get_bl (rows_p, k, J, m, l), m, l);
             }
           DRtA_l (Revrsd, A, D, m, l);
           // !memcpy (A, Temp, m * l * sizeof (double));
@@ -139,12 +150,12 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
   // !pthread_barrier_wait (bar);
   if ((l = n - N * m) && (I % commSize == rank))
     {
-      double *A = get_bl (rows_p, I, I, m);
+      double *A = get_bl (rows_p, I, I, m, l);
       // !memcpy (Temp, A, l * (l + 1) / 2 * sizeof (double));
       for (int k = 0; k < I; k++)
         {
           // !minus_RTDRu_l (Temp, &a[get_bl (k, I, u, b)], d + k * m, m, l);
-          minus_RTDRu_l (A, get_bl (rows_p, k, I, m), d + k * m, m, l);
+          minus_RTDRu_l (A, get_bl (rows_p, k, I, m, l), d + k * m, m, l);
         }
       ret = std::max (cholesky_decomp_U (A, D, l, norma), ret);
       // !memcpy (d + I * m, D, l * sizeof (double));
@@ -154,7 +165,7 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
     }
   if ((l = n - N * m))
     {
-      MPI_Scatter (D, m, MPI_DOUBLE, d + I * m, m, MPI_DOUBLE, I % commSize,
+      MPI_Scatter (D, l, MPI_DOUBLE, d + I * m, l, MPI_DOUBLE, I % commSize,
                    MPI_COMM_WORLD);
     }
   // printf ("total time spent on barrier %lf\n", totaldelta);

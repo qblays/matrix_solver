@@ -418,3 +418,76 @@ DRtA_l (mat R, mat A, vec D, int n, int l)
         }
     }
 }
+
+void
+print_matrix (double *a, size_t n)
+{
+  size_t i, j, N = n, l = 0;
+  if (n > MAX)
+    {
+      N = MAX;
+      l = 1;
+    }
+  for (i = 0; i < N; i++)
+    {
+      for (j = 0; j < N; j++)
+        {
+          printf ("%*.2lf ", 6, a[i * n + j]);
+        }
+      if (l == 1)
+        printf ("\t...");
+      printf ("\n");
+    }
+  if (l)
+    {
+      printf ("\t...\t...\t...\n");
+      for (i = n - N; i < n; i++)
+        {
+          printf ("\t...");
+          for (j = n - N; j < n; j++)
+            {
+              printf ("%*.2lf ", 6, a[i * n + j]);
+            }
+          printf ("\n");
+        }
+    }
+}
+
+void
+print_matrix_b_upper (double *a, int n)
+{
+  int i, j, N = n, l = 0;
+  if (n > MAX)
+    {
+      N = MAX;
+      l = 1;
+    }
+  for (i = 0; i < N; i++)
+    {
+      for (j = 0; j < N; j++)
+        {
+          i <= j ? printf ("%e ", a[get_elU (i, j, n)]) : printf ("%e ", 0.0);
+          /*i <= j ? printf ("%*.2lf ", 6, a[get_el (i, j, u, b, n)])
+                 : printf ("%*.2lf ", 6, 0.0);*/
+        }
+      if (l == 1)
+        printf ("\t...");
+      printf ("\n");
+    }
+  if (l)
+    {
+      printf ("\t...\t...\t...\n");
+      for (i = n - N; i < n; i++)
+        {
+          printf ("\t...");
+          for (j = n - N; j < n; j++)
+            {
+              i <= j ? printf ("%e ", a[get_elU (i, j, n)])
+                     : printf ("%e ", 0.0);
+              /*i <= j ? printf ("%*.2lf ", 6, a[get_el (i, j, u, b, n)])
+                     : printf ("%*.2lf ", 6, 0.0);*/
+            }
+          printf ("\n");
+        }
+    }
+}

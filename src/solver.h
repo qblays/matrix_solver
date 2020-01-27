@@ -2,9 +2,10 @@
 #define SOLVER_H
 #include "defines.h"
 inline double *
-get_bl (double **&rows_p, size_t I, size_t J, size_t m)
+get_bl (double **&rows_p, size_t I, size_t J, size_t m, size_t l = 0)
 {
-  return rows_p[J] + I * m;
+
+  return rows_p[J] + I * m * (l > 0 ? l : m);
 }
 
 bool

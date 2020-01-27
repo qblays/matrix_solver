@@ -1,6 +1,7 @@
 #ifndef MATRIX_OP
 #define MATRIX_OP
 #include "defines.h"
+#include <cstdio>
 
 void
 minus_RTDR_o1 (mat __restrict A, mat __restrict R1, vec __restrict D,
@@ -32,5 +33,11 @@ DRtA (mat R, mat A, vec D, int n);
 
 void
 DRtA_l (mat R, mat A, vec D, int n, int l);
+
+void
+print_matrix (double *a, size_t n);
+
+void
+print_matrix_b_upper (double *a, int n);
 
 #endif

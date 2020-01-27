@@ -13,7 +13,7 @@ using initializer = double (*) (size_t i, size_t j, size_t);
 double
 f1 (size_t i, size_t j, size_t n = 0)
 {
-  return i * 1000 + j + 2;
+  return n - std::max (i, j);
 }
 
 int
@@ -54,6 +54,8 @@ main (int argc, char **argv)
 
   auto res = cholesky_decomp_bu_thread (rows_p, d_p.get (), n, m, 1);
   printf ("w%d: choletsky res = %d\n", rank, res);
+  printf ("R: \n");
+  print_mat (rows_p, n, m);
 
   delete[] rows_p;
   delete[] mat_body;
