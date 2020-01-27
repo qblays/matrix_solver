@@ -32,6 +32,9 @@ main (int argc, char **argv)
       printf ("rank = %d, commSize = %d\n", rank, commSize);
       printf ("using: %s n m\n", argv[0]);
       printf ("n = %lu, m = %lu\n", n, m);
+#ifdef AVX
+      printf ("AVX\n");
+#endif
     }
   auto total_alloc_size = compute_alloc_size (n, m);
   auto rows_p = new double *[n / m + (n % m > 0)];

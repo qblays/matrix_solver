@@ -36,7 +36,7 @@ alloc_rows (size_t n, size_t m, size_t n_to_alloc, double **rows_p)
   int columns_n = n / m + (n % m > 0);
   int reminder = n - (n / m) * m;
   auto mat = new double[n_to_alloc];
-  printf ("allocated = %p\n", mat);
+  // printf ("allocated = %p\n", mat);
   size_t sum = 0;
   for (int i = 0; i < columns_n; i++)
     {
@@ -49,7 +49,7 @@ alloc_rows (size_t n, size_t m, size_t n_to_alloc, double **rows_p)
         {
           // printf ("%d th col size %d\n", i, col_width);
           rows_p[i] = mat + sum;
-          printf ("%d th row in %p\n", i, mat + sum);
+          printf ("%d th row\n", i);
           sum += i * m * col_width;
           sum += (col_width * (col_width + 1)) / 2;
           size_t t = i * m * col_width + (col_width * (col_width + 1)) / 2;

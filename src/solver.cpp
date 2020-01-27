@@ -26,14 +26,10 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
   // auto Test_vec = Test_mat2 + m * m;
   auto column_thread = Column_thread.get ();
   auto D = D_p.get ();
-  int u, b;
-  int on_exit = 0;
 
   // get_ub (n, m, u, b);
   int N = n / m;
   int I = 0;
-  double delta;
-  double totaldelta = 0;
   // fill_random (Test_mat1, m * m);
   // fill_random (Test_vec, m);
   // fill_random (Test_mat3, m * m);
@@ -78,6 +74,7 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
         {
 // minus_RTDRu_o1 (Temp, column_thread + k * m * m, d + k * m, m);
 #ifdef AVX
+          
           minus_RTDRu_o1_avx_ggggg (Temp, column_thread + k * m * m, d + k * m,
                                     column_thread + k * m * m, m);
 #else
