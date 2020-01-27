@@ -44,14 +44,29 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       // memcpy (Temp, get_bl(rows_p, I, I, m), m * (m + 1) / 2 * sizeof
       // (double));
       printf ("I = %d\n", I);
-      MPI_Scatter (get_bl (rows_p, I, I, m), m * (m + 1) / 2, MPI_DOUBLE, Temp,
-                   m * m, MPI_DOUBLE, I % commSize, MPI_COMM_WORLD);
+      // MPI_Scatter (get_bl (rows_p, I, I, m), m * (m + 1) / 2, MPI_DOUBLE,
+      // Temp,
+      //              m * m, MPI_DOUBLE, I % commSize, MPI_COMM_WORLD);
+      if (I % commSize == rank)
+        {
+          memcpy (Temp, get_bl (rows_p, I, I, m),
+                  m * (m + 1) / 2 * sizeof (double));
+        }
+      MPI_Bcast (Temp, m * (m + 1) / 2, MPI_DOUBLE, I % commSize,
+                 MPI_COMM_WORLD);
 
       //! pthread_barrier_wait (bar);
       //! fill_column (column_thread, a, n, m, m, m, I, I);
-      MPI_Scatter (get_bl (rows_p, 0, I, m), m * m * I, MPI_DOUBLE,
-                   column_thread, m * n, MPI_DOUBLE, I % commSize,
-                   MPI_COMM_WORLD);
+      if (I % commSize == rank)
+        {
+          memcpy (column_thread, get_bl (rows_p, 0, I, m),
+                  (m * m * I) * sizeof (double));
+        }
+      // MPI_Scatter (get_bl (rows_p, 0, I, m), m * m * I, MPI_DOUBLE,
+      //              column_thread, m * n, MPI_DOUBLE, I % commSize,
+      //              MPI_COMM_WORLD);
+      MPI_Bcast (column_thread, m * m * I, MPI_DOUBLE, I % commSize,
+                 MPI_COMM_WORLD);
       printf ("Temp: \n");
       print_matrix_b_upper (Temp, m);
       if (I > 0)
@@ -159,14 +174,16 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
         }
       ret = std::max (cholesky_decomp_U (A, D, l, norma), ret);
       // !memcpy (d + I * m, D, l * sizeof (double));
+      memcpy (d + I * m, D, l * sizeof (double));
+      
       // MPI_Scatter (D, m, MPI_DOUBLE, d + I * m, m, MPI_DOUBLE, I / commSize,
       //              MPI_COMM_WORLD);
       // !memcpy (A, Temp, l * (l + 1) / 2 * sizeof (double));
     }
   if ((l = n - N * m))
     {
-      MPI_Scatter (D, l, MPI_DOUBLE, d + I * m, l, MPI_DOUBLE, I % commSize,
-                   MPI_COMM_WORLD);
+      MPI_Bcast (d + I * m, l, MPI_DOUBLE, I % commSize,
+                 MPI_COMM_WORLD);
     }
   // printf ("total time spent on barrier %lf\n", totaldelta);
   return ret;
