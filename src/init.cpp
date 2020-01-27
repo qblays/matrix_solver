@@ -52,7 +52,7 @@ alloc_rows (size_t n, size_t m, size_t n_to_alloc, double **rows_p)
           // printf ("%d th row\n", i);
           sum += i * m * col_width;
           sum += (col_width * (col_width + 1)) / 2;
-          size_t t = i * m * col_width + (col_width * (col_width + 1)) / 2;
+          // size_t t = i * m * col_width + (col_width * (col_width + 1)) / 2;
           // printf ("row %dth have size %lu\n", i, t);
         }
       else
@@ -169,8 +169,6 @@ print_mat_triangle (double **rows_p, size_t n, size_t m)
   int columns_n = n / m + (n % m > 0);
   int reminder = n - (n / m) * m;
   // size_t sum = 0;
-  int num_ours_rows = columns_n / commSize;
-  int Ii = 0;
   for (int I = 0; I < columns_n; I++)
     {
       auto col_width = m;
@@ -180,9 +178,8 @@ print_mat_triangle (double **rows_p, size_t n, size_t m)
         }
       if (I % commSize == rank)
         {
-          Ii++;
           // print only last triangle
-          if (Ii == num_ours_rows)
+          if (I+commSize>=columns_n)
             {
               double *a = rows_p[I];
               a += I * m * col_width;
