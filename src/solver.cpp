@@ -39,7 +39,7 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       //! (double));
       // memcpy (Temp, get_bl(rows_p, I, I, m), m * (m + 1) / 2 * sizeof
       // (double));
-      printf ("I = %d\n", I);
+      // printf ("I = %d\n", I);
       // MPI_Scatter (get_bl (rows_p, I, I, m), m * (m + 1) / 2, MPI_DOUBLE,
       // Temp,
       //              m * m, MPI_DOUBLE, I % commSize, MPI_COMM_WORLD);
@@ -63,12 +63,12 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       //              MPI_COMM_WORLD);
       MPI_Bcast (column_thread, m * m * I, MPI_DOUBLE, I % commSize,
                  MPI_COMM_WORLD);
-      printf ("Temp: \n");
-      print_matrix_b_upper (Temp, m);
+      // printf ("Temp: \n");
+      // print_matrix_b_upper (Temp, m);
       if (I > 0)
         {
-          printf ("column thread: \n");
-          print_matrix (column_thread, m);
+          // printf ("column thread: \n");
+          // print_matrix (column_thread, m);
         }
       for (int k = 0; k < I; k++)
         {
@@ -96,12 +96,12 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       // !!!!MPI_Scatter (D, m, MPI_DOUBLE, d + I * m, m, MPI_DOUBLE, I %
       // commSize,
       //              MPI_COMM_WORLD);
-      printf ("Temp: \n");
-      print_matrix_b_upper (Temp, m);
+      // printf ("Temp: \n");
+      // print_matrix_b_upper (Temp, m);
       memcpy (d + I * m, D, m * sizeof (double));
       ret = std::max (reverse_upper (Temp, Revrsd, m, norma), ret);
-      printf ("Revrsd: \n");
-      print_matrix_b_upper (Revrsd, m);
+      // printf ("Revrsd: \n");
+      // print_matrix_b_upper (Revrsd, m);
       if (ret == 1)
         return ret;
       int J;
@@ -136,8 +136,8 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
 #endif
                 }
               DRtA (Revrsd, A, D, m);
-              printf ("drta I= %d, J=%d\n", I, J);
-              print_matrix (A, m);
+              // printf ("drta I= %d, J=%d\n", I, J);
+              // print_matrix (A, m);
               // memcpy (A, Temp, m * m * sizeof (double));
             }
         }
