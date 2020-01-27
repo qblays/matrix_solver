@@ -7,7 +7,7 @@ compute_alloc_size (size_t n, size_t m)
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   int columns_n = n / m + (n % m > 0);
-  printf ("columns_n = %d\n", columns_n);
+  // printf ("columns_n = %d\n", columns_n);
   int reminder = n - (n / m) * m;
   size_t sum = 0;
   for (int i = 0; i < columns_n; i++)
@@ -49,11 +49,11 @@ alloc_rows (size_t n, size_t m, size_t n_to_alloc, double **rows_p)
         {
           // printf ("%d th col size %d\n", i, col_width);
           rows_p[i] = mat + sum;
-          printf ("%d th row\n", i);
+          // printf ("%d th row\n", i);
           sum += i * m * col_width;
           sum += (col_width * (col_width + 1)) / 2;
           size_t t = i * m * col_width + (col_width * (col_width + 1)) / 2;
-          printf ("row %dth have size %lu\n", i, t);
+          // printf ("row %dth have size %lu\n", i, t);
         }
       else
         {
@@ -82,15 +82,15 @@ init_mat (double **rows_p, size_t n, size_t m, initializer f)
       if (I % commSize == rank)
         {
           double *a = rows_p[I];
-          printf ("init column %d\n", I);
+          // printf ("init column %d\n", I);
           for (size_t i = 0; i < I * m; i++)
             {
               for (size_t j = I * m; j < I * m + col_width; j++)
                 {
                   a[i * col_width + j - I * m] = f (i, j, n);
-                  printf ("%3lu ", i * col_width + j);
+                  // printf ("%3lu ", i * col_width + j);
                 }
-              printf ("\n");
+              // printf ("\n");
             }
           a += I * m * col_width;
           for (size_t i = 0; i < col_width; i++)
@@ -105,9 +105,9 @@ init_mat (double **rows_p, size_t n, size_t m, initializer f)
                   a[get_elU (i, j, col_width)] = f (i + I * m, j + I * m, n);
                   // printf ("f(%lu, %lu) = %lf ", i + I * m, j + I * m,
                   //         f (i + I * m, j + I * m, n));
-                  printf ("%3lu ", get_elU (i, j, col_width));
+                  // printf ("%3lu ", get_elU (i, j, col_width));
                 }
-              printf ("\n");
+              // printf ("\n");
             }
         }
     }
