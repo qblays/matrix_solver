@@ -159,3 +159,47 @@ print_mat (double **rows_p, size_t n, size_t m)
         }
     }
 }
+
+void
+print_mat_triangle (double **rows_p, size_t n, size_t m)
+{
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  int columns_n = n / m + (n % m > 0);
+  int reminder = n - (n / m) * m;
+  // size_t sum = 0;
+  int num_ours_rows = columns_n / commSize;
+  int Ii = 0;
+  for (int I = 0; I < columns_n; I++)
+    {
+      auto col_width = m;
+      if (I == columns_n - 1 && reminder > 0)
+        {
+          col_width = reminder;
+        }
+      if (I % commSize == rank)
+        {
+          Ii++;
+          // print only last triangle
+          if (Ii == num_ours_rows)
+            {
+              double *a = rows_p[I];
+              a += I * m * col_width;
+              printf ("printing triangle\n");
+              for (size_t i = 0; i < col_width; i++)
+                {
+                  for (size_t j = 0; j < i; j++)
+                    {
+                      printf ("%4.6lf ", 0.);
+                    }
+                  for (size_t j = i; j < col_width; j++)
+                    {
+                      printf ("%4.6lf ", a[get_elU (i, j, col_width)]);
+                    }
+                  printf ("\n");
+                }
+            }
+        }
+    }
+}

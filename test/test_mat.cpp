@@ -52,13 +52,18 @@ main (int argc, char **argv)
       assert (sum == n * (n + 1) / 2);
     }
   init_mat (rows_p, n, m, f1);
-  print_mat (rows_p, n, m);
+  // print_mat (rows_p, n, m);
   auto d_p = std::unique_ptr<double> (new double[n]);
 
+  timeval t1, t2;
+  gettimeofday (&t1, nullptr);
   auto res = cholesky_decomp_bu_thread (rows_p, d_p.get (), n, m, 1);
   printf ("w%d: choletsky res = %d\n", rank, res);
+  gettimeofday (&t2, nullptr);
+  printf ("elapsed = %lf\n",
+          (t2.tv_sec - t1.tv_sec) * 1.e6 + t2.tv_usec - t1.tv_usec);
   printf ("R: \n");
-  print_mat (rows_p, n, m);
+  print_mat_triangle (rows_p, n, m);
 
   delete[] rows_p;
   delete[] mat_body;

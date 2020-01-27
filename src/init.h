@@ -17,4 +17,7 @@ init_mat (double **rows_p, size_t n, size_t m, initializer f);
 
 void
 print_mat (double **rows_p, size_t n, size_t m);
+
+void
+print_mat_triangle (double **rows_p, size_t n, size_t m);
 #endif
