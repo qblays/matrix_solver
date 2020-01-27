@@ -98,7 +98,7 @@ init_mat (double **rows_p, size_t n, size_t m, initializer f)
               for (size_t j = 0; j < i; j++)
                 {
                   // a[get_elU (i, j, col_width)] = f (i, j, n);
-                  printf ("    ");
+                  // printf ("    ");
                 }
               for (size_t j = i; j < col_width; j++)
                 {
