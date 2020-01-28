@@ -73,14 +73,14 @@ cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
       for (int k = 0; k < I; k++)
         {
 // minus_RTDRu_o1 (Temp, column_thread + k * m * m, d + k * m, m);
-#ifdef AVX
+// #ifdef AVX
           
-          minus_RTDRu_o1_avx_ggggg (Temp, column_thread + k * m * m, d + k * m,
-                                    column_thread + k * m * m, m);
-#else
+          // minus_RTDRu_o1_avx_ggggg (Temp, column_thread + k * m * m, d + k * m,
+          //                           column_thread + k * m * m, m);
+// #else
           minus_RTDRu_ofast (Temp, column_thread + k * m * m, d + k * m,
                              column_thread + k * m * m, m);
-#endif
+// #endif
         }
 
       ret = std::max (cholesky_decomp_U (Temp, D, m, norma), ret);
