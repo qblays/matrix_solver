@@ -289,7 +289,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
           return 0;
         }
       printf ("successfully read line %d\n", i);
-      for (int I = 0; I < columns_n; I++)
+      for (int I = rank; I < columns_n; I+=commSize)
         {
           auto col_width = m;
           if (I == columns_n - 1 && reminder > 0)
@@ -332,7 +332,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
             {
               recvbuf = a + col_width * i;
             }
-          if (sendcount > 0 && (I % commSize != 0))
+          if (sendcount > 0)
             {
               if (MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0,
                             MPI_COMM_WORLD, MPI_STATUS_IGNORE) == MPI_SUCCESS)
