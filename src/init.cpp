@@ -332,10 +332,10 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
             {
               recvbuf = a + col_width * i;
             }
-          if (sendcount > 0 && (I % commSize > 0))
+          if (sendcount > 0 && (I % commSize != 0))
             {
               MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD,
-                        nullptr);
+                        MPI_STATUS_IGNORE);
             }
         }
     }
