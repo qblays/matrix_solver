@@ -187,7 +187,12 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
           exec_on_ret ();
           return 0;
         }
-      printf ("successfully read line %d\n", i);
+      printf ("successfully read line %d:\n", i);
+      for (int k = i; k < n; k++)
+        {
+          printf ("%lf ", buf[k])
+        }
+      printf ("\n");
       for (int I = 0; I < columns_n; I++)
         {
           auto col_width = m;
