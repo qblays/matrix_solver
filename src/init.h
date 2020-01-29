@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <mpi.h>
 #include <cassert>
+#include <cstring>
 using initializer = double (*) (size_t i, size_t j, size_t);
 
 size_t

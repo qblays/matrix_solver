@@ -127,26 +127,40 @@ read_string_of_doubles (FILE *fd, double *buf, const size_t n)
   return 1;
 }
 
-
-void test_bcast_root(int a){
+void
+test_bcast_root (int a)
+{
   int rank, commSize;
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-  assert(rank == 0);
+  assert (rank == 0);
 
-  MPI_Bcast(&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
 }
 
-void test_bcast_others(){
+void
+test_bcast_others ()
+{
   int rank, commSize;
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-  assert(rank != 0);
+  assert (rank != 0);
   int a;
-  MPI_Bcast(&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  printf("%d: a = %d\n", rank, a);
+  MPI_Bcast (&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  printf ("%d: a = %d\n", rank, a);
 }
 
+bool
+init_mat_file (double **rows_p, size_t n, size_t m, const char *filename)
+{
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  if (rank == 0)
+    return init_mat_file_root (rows_p, n, m, filename);
+  else
+    return init_mat_file_others (rows_p, n, m, filename);
+}
 
 bool
 init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
@@ -155,10 +169,10 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
   int rank, commSize;
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-  assert(rank == 0);
+  assert (rank == 0);
   FILE *fd;
   fd = fopen (filename, "r");
-
+  MPI_Bcast (&fd, 1, MPI_INT, 0, MPI_COMM_WORLD); // 1
   if (!fd)
     {
       printf ("cant open %s\n", filename);
@@ -173,20 +187,13 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
     delete[] buf;
   };
 
-  
   int columns_n = n / m + (n % m > 0);
   int reminder = n - (n / m) * m;
 
   for (size_t i = 0; i < n; i++)
     {
-      val = read_string_of_doubles (fd, buf, i);
-      if (!val)
-        {
-          exec_on_ret ();
-          // MPI_Bcast()
-          return 0;
-        }
-      val = read_string_of_doubles (fd, buf + i, n - i);
+      val = read_string_of_doubles (fd, buf, n);
+      MPI_Bcast (&val, 1, MPI_INT, 0, MPI_COMM_WORLD); // 2
       if (!val)
         {
           exec_on_ret ();
@@ -238,12 +245,105 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
             {
               recvbuf = a + col_width * i;
             }
-            if(sendcount>0){
-              // MPI_Send()
+          if (sendcount > 0)
+            {
+              if (I % commSize == 0)
+                { // not send to root
+                  printf ("root copied buf\n");
+                  memcpy (recvbuf, sendbuf, sendcount);
+                }
+              else
+                {
+                  printf ("root sended buf to %d\n", I % commSize);
+                  MPI_Send (sendbuf, sendcount, MPI_DOUBLE, I % commSize, 0,
+                            MPI_COMM_WORLD);
+                }
             }
         }
     }
   exec_on_ret ();
+  return 1;
+}
+
+bool
+init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
+{
+
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  assert (rank != 0);
+
+  int ret;
+  MPI_Bcast (&ret, 1, MPI_INT, 0, MPI_COMM_WORLD); // 1
+  if (!ret)
+    {
+      printf ("cant open %s\n", filename);
+      return 0;
+    }
+
+  int columns_n = n / m + (n % m > 0);
+  int reminder = n - (n / m) * m;
+  int val;
+
+  for (size_t i = 0; i < n; i++)
+    {
+      MPI_Bcast (&val, 1, MPI_INT, 0, MPI_COMM_WORLD); // 2
+      if (!val)
+        {
+          printf ("unexpected eof of %s\n", filename);
+          return 0;
+        }
+      printf ("successfully read line %d\n", i);
+      for (int I = 0; I < columns_n; I++)
+        {
+          auto col_width = m;
+          if (I == columns_n - 1 && reminder > 0)
+            {
+              col_width = reminder;
+            }
+
+          printf ("init column %d\n", I);
+
+          double *sendbuf;
+          double sendcount;
+          size_t offset;
+          bool send_triangle = 0;
+          if (i <= I * m)
+            {
+              offset = I * m;
+              sendcount = col_width;
+            }
+          else if (i >= I * m + m)
+            {
+              offset = 0;
+              sendcount = 0;
+            }
+          else
+            {
+              offset = i;
+              sendcount = col_width - i % m;
+              send_triangle = 1;
+            }
+          printf ("sendcount = %d, offset = %lu\n", sendcount, offset);
+          double *a = rows_p[I];
+          double *recvbuf;
+          if (send_triangle)
+            {
+              a += col_width * (i / m) * m;
+              recvbuf = &a[get_elU (i % m, i % m, col_width)];
+            }
+          else
+            {
+              recvbuf = a + col_width * i;
+            }
+          if (sendcount > 0 && (I % commSize > 0))
+            {
+              MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD,
+                        nullptr);
+            }
+        }
+    }
   return 1;
 }
 

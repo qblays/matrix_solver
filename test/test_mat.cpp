@@ -26,16 +26,6 @@ main (int argc, const char **argv)
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
 
-  if (rank == 0)
-    {
-      test_bcast_root (2);
-    }
-  else
-    {
-      test_bcast_others ();
-    }
-  MPI_Finalize ();
-  return 0;
   if (check_args (argc, argv) == false)
     {
       printf ("Usage: %s n m <filename>\n", argv[0]);
@@ -84,7 +74,6 @@ main (int argc, const char **argv)
           return 0;
         }
     }
-
   else
     init_mat (rows_p, n, m, f1);
   // print_mat (rows_p, n, m);
