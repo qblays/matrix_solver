@@ -187,11 +187,11 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
           exec_on_ret ();
           return 0;
         }
-      printf ("successfully read line %d:\n", i);
-      for (int k = i; k < n; k++)
-        {
-          printf ("%lf ", buf[k]);
-        }
+      // printf ("successfully read line %d:\n", i);
+      // for (int k = i; k < n; k++)
+      //   {
+      //     printf ("%lf ", buf[k]);
+      //   }
       printf ("\n");
       for (int I = 0; I < columns_n; I++)
         {
@@ -201,7 +201,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
               col_width = reminder;
             }
 
-          printf ("init column %d\n", I);
+          // printf ("init column %d\n", I);
 
           double *sendbuf;
           int sendcount;
@@ -243,7 +243,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
             {
               if (I % commSize == 0)
                 { // not send to root
-                  printf ("root copied buf\n");
+                  // printf ("root copied buf\n");
                   memcpy (recvbuf, sendbuf, sendcount * sizeof (double));
                 }
               else
@@ -288,7 +288,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
           printf ("unexpected eof of %s\n", filename);
           return 0;
         }
-      printf ("successfully read line %d\n", i);
+      // printf ("successfully read line %d\n", i);
       for (int I = rank; I < columns_n; I+=commSize)
         {
           auto col_width = m;
@@ -297,7 +297,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
               col_width = reminder;
             }
 
-          printf ("init column %d\n", I);
+          // printf ("init column %d\n", I);
 
           double *sendbuf;
           int sendcount;
