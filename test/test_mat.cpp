@@ -76,7 +76,8 @@ main (int argc, const char **argv)
     }
   else
     init_mat (rows_p, n, m, f1);
-  // print_mat (rows_p, n, m);
+  printf ("printing mat\n");
+  print_mat (rows_p, n, m);
   auto d = new double[n];
   timeval t1, t2;
   gettimeofday (&t1, nullptr);
