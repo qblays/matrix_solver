@@ -199,7 +199,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
           printf ("init column %d\n", I);
 
           double *sendbuf;
-          double sendcount;
+          int sendcount;
           size_t offset;
           bool send_triangle = 0;
           if (i <= I * m)
@@ -221,7 +221,8 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
               sendcount = col_width - i % m;
               send_triangle = 1;
             }
-          printf ("sendcount = %d, offset = %lu\n", sendcount, offset);
+          printf ("sendcount = %d, offset = %lu, tr = %d, cw = %d\n", sendcount,
+                  offset, send_triangle, col_width);
           double *a = rows_p[I];
           double *recvbuf;
           if (send_triangle)
@@ -294,7 +295,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
           printf ("init column %d\n", I);
 
           double *sendbuf;
-          double sendcount;
+          int sendcount;
           size_t offset;
           bool send_triangle = 0;
           if (i <= I * m)
@@ -313,7 +314,8 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
               sendcount = col_width - i % m;
               send_triangle = 1;
             }
-          printf ("sendcount = %d, offset = %lu\n", sendcount, offset);
+          printf ("sendcount = %d, offset = %lu, tr = %d\n", sendcount, offset,
+                  send_triangle);
           double *a = rows_p[I];
           double *recvbuf;
           if (send_triangle)
