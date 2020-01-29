@@ -244,7 +244,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
               if (I % commSize == 0)
                 { // not send to root
                   printf ("root copied buf\n");
-                  memcpy (recvbuf, sendbuf, sendcount);
+                  memcpy (recvbuf, sendbuf, sendcount * sizeof (double));
                 }
               else
                 {
