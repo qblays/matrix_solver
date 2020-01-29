@@ -134,7 +134,7 @@ void test_bcast_root(int a){
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   assert(rank == 0);
 
-  MPI_Bcast(&a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
 }
 
 void test_bcast_others(){
@@ -143,7 +143,7 @@ void test_bcast_others(){
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   assert(rank != 0);
   int a;
-  MPI_Bcast(&a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&a, 1, MPI_INT, 0, MPI_COMM_WORLD);
   printf("%d: a = %d\n", rank, a);
 }
 
