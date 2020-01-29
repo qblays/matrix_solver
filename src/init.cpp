@@ -190,7 +190,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
       printf ("successfully read line %d:\n", i);
       for (int k = i; k < n; k++)
         {
-          printf ("%lf ", buf[k])
+          printf ("%lf ", buf[k]);
         }
       printf ("\n");
       for (int I = 0; I < columns_n; I++)
