@@ -20,18 +20,17 @@ int
 main (int argc, const char **argv)
 {
 
-  MPI_Init (&argc, (char ***)&argv);
-  int rank, commSize;
-
-  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
-  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-
   if (check_args (argc, argv) == false)
     {
       printf ("Usage: %s n m <filename>\n", argv[0]);
       MPI_Finalize ();
       return 0;
     }
+  MPI_Init (&argc, (char ***)&argv);
+  int rank, commSize;
+
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   size_t n = atoi (argv[1]);
   size_t m = atoi (argv[2]);
   const char *filename = nullptr;
