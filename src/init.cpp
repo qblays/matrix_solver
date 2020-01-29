@@ -334,8 +334,15 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
             }
           if (sendcount > 0 && (I % commSize != 0))
             {
-              MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD,
-                        MPI_STATUS_IGNORE);
+              if (MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE) == MPI_SUCCESS)
+                {
+                  printf ("successfuly received message!\n");
+                }
+              else
+                {
+                  printf ("ERROR IN RECV\n");
+                }
             }
         }
     }
