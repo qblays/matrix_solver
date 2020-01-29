@@ -151,18 +151,6 @@ test_bcast_others ()
 }
 
 bool
-init_mat_file (double **rows_p, size_t n, size_t m, const char *filename)
-{
-  int rank, commSize;
-  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
-  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-  if (rank == 0)
-    return init_mat_file_root (rows_p, n, m, filename);
-  else
-    return init_mat_file_others (rows_p, n, m, filename);
-}
-
-bool
 init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
 {
 
@@ -345,6 +333,18 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
         }
     }
   return 1;
+}
+
+bool
+init_mat_file (double **rows_p, size_t n, size_t m, const char *filename)
+{
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  if (rank == 0)
+    return init_mat_file_root (rows_p, n, m, filename);
+  else
+    return init_mat_file_others (rows_p, n, m, filename);
 }
 
 void
