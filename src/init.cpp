@@ -1,5 +1,5 @@
 #include "init.h"
-
+#include <memory>
 size_t
 compute_alloc_size (size_t n, size_t m)
 {
@@ -113,6 +113,140 @@ init_mat (double **rows_p, size_t n, size_t m, initializer f)
     }
 }
 
+bool
+read_string_of_doubles (FILE *fd, double *buf, const size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    {
+      int ret = fscanf (fd, "%lf", &buf[i]);
+      if (ret != 1)
+        {
+          return 0;
+        }
+    }
+  return 1;
+}
+
+
+void test_bcast_root(int a){
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  assert(rank == 0);
+
+  MPI_Bcast(&a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+}
+
+void test_bcast_others(){
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  assert(rank != 0);
+  int a;
+  MPI_Bcast(&a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  printf("%d: a = %d\n", rank, a);
+}
+
+
+bool
+init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
+{
+
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  assert(rank == 0);
+  FILE *fd;
+  fd = fopen (filename, "r");
+
+  if (!fd)
+    {
+      printf ("cant open %s\n", filename);
+      return 0;
+    }
+  int val = 1;
+  double *buf = new double[n];
+  auto exec_on_ret = [&]() {
+    if (val == 0)
+      printf ("unexpected eof of %s\n", filename);
+    fclose (fd);
+    delete[] buf;
+  };
+
+  
+  int columns_n = n / m + (n % m > 0);
+  int reminder = n - (n / m) * m;
+
+  for (size_t i = 0; i < n; i++)
+    {
+      val = read_string_of_doubles (fd, buf, i);
+      if (!val)
+        {
+          exec_on_ret ();
+          // MPI_Bcast()
+          return 0;
+        }
+      val = read_string_of_doubles (fd, buf + i, n - i);
+      if (!val)
+        {
+          exec_on_ret ();
+          return 0;
+        }
+      printf ("successfully read line %d\n", i);
+      for (int I = 0; I < columns_n; I++)
+        {
+          auto col_width = m;
+          if (I == columns_n - 1 && reminder > 0)
+            {
+              col_width = reminder;
+            }
+
+          printf ("init column %d\n", I);
+
+          double *sendbuf;
+          double sendcount;
+          size_t offset;
+          bool send_triangle = 0;
+          if (i <= I * m)
+            {
+              offset = I * m;
+              sendbuf = buf + offset;
+              sendcount = col_width;
+            }
+          else if (i >= I * m + m)
+            {
+              offset = 0;
+              sendbuf = nullptr;
+              sendcount = 0;
+            }
+          else
+            {
+              offset = i;
+              sendbuf = buf + offset;
+              sendcount = col_width - i % m;
+              send_triangle = 1;
+            }
+          printf ("sendcount = %d, offset = %lu\n", sendcount, offset);
+          double *a = rows_p[I];
+          double *recvbuf;
+          if (send_triangle)
+            {
+              a += col_width * (i / m) * m;
+              recvbuf = &a[get_elU (i % m, i % m, col_width)];
+            }
+          else
+            {
+              recvbuf = a + col_width * i;
+            }
+            if(sendcount>0){
+              // MPI_Send()
+            }
+        }
+    }
+  exec_on_ret ();
+  return 1;
+}
+
 void
 print_mat (double **rows_p, size_t n, size_t m)
 {
@@ -179,7 +313,7 @@ print_mat_triangle (double **rows_p, size_t n, size_t m)
       if (I % commSize == rank)
         {
           // print only last triangle
-          if (I+commSize>=columns_n)
+          if (I + commSize >= columns_n)
             {
               double *a = rows_p[I];
               a += I * m * col_width;
@@ -199,4 +333,17 @@ print_mat_triangle (double **rows_p, size_t n, size_t m)
             }
         }
     }
+}
+
+bool
+check_args (const int argc, const char **argv)
+{
+  if (argc > 1 && argc < 5)
+    {
+      if (atoi (argv[1]) != 0 && atoi (argv[2]) != 0)
+        {
+          return 1;
+        }
+    }
+  return 0;
 }

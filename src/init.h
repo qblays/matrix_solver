@@ -4,6 +4,7 @@
 #include "defines.h"
 #include <cstddef>
 #include <mpi.h>
+#include <cassert>
 using initializer = double (*) (size_t i, size_t j, size_t);
 
 size_t
@@ -20,4 +21,15 @@ print_mat (double **rows_p, size_t n, size_t m);
 
 void
 print_mat_triangle (double **rows_p, size_t n, size_t m);
+
+bool
+check_args (const int argc, const char **argv);
+
+bool
+init_mat_file (double **rows_p, size_t n, size_t m, const char *filename);
+
+void test_bcast_root(int a);
+
+void test_bcast_others();
+
 #endif
