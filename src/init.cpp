@@ -172,7 +172,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
     if (val == 0)
       printf ("unexpected eof of %s\n", filename);
     fclose (fd);
-    // delete[] buf;
+    delete[] buf;
   };
 
   int columns_n = n / m + (n % m > 0);
@@ -289,7 +289,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
           return 0;
         }
       printf ("successfully read line %d\n", i);
-      for (int I = rank; I < columns_n; I += commSize)
+      for (int I = rank; I < columns_n; I+=commSize)
         {
           auto col_width = m;
           if (I == columns_n - 1 && reminder > 0)
