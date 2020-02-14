@@ -1,5 +1,6 @@
 #include "matrix_op.h"
-
+#include "init.h"
+#include <mpi.h>
 void
 minus_RTDR_o1 (mat __restrict A, mat __restrict R1, vec __restrict D,
                mat __restrict R2, int n)
@@ -492,3 +493,93 @@ print_matrix_b_upper (double *a, int n)
     }
 }
 
+void
+print_mat_beauty (int root, size_t n, size_t m, double **&rows_p, size_t len,
+                  bool log, int width, int precision)
+{
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  if (len == -1UL || len > n)
+    len = n;
+
+  double *row = nullptr;
+  if (rank == root)
+    {
+      row = new double[n];
+    }
+  for (size_t i = 0; i < len; i++)
+    {
+      gather_row (i, n, m, root, row, rows_p);
+      if (rank == root)
+        {
+          for (size_t j = 0; j < i; j++)
+            {
+              for (int k = 0; k < width + log; k++)
+                printf (" ");
+              printf (" ");
+            }
+          for (size_t j = i; j < len; j++)
+            {
+              log ? printf ("% *.*e ", width, precision, row[j])
+                  : printf ("%*.*lf ", width, precision, row[j]);
+            }
+          printf ("\n");
+        }
+    }
+  auto offset = n - len > len ? n - len : len;
+  for (size_t i = offset; i < n; i++)
+    {
+      gather_row (i, n, m, root, row, rows_p);
+      if (rank == root)
+        {
+          for (int k = 0; k < width + log; k++)
+            printf (".");
+          printf (" ");
+          for (size_t j = offset; j < i; j++)
+            {
+              for (int k = 0; k < width + log; k++)
+                printf (" ");
+              printf (" ");
+            }
+          for (size_t j = i; j < n; j++)
+            {
+              log ? printf ("% *.*e ", width, precision, row[j])
+                  : printf ("%*.*lf ", width, precision, row[j]);
+            }
+          printf ("\n");
+        }
+    }
+  if (rank == root)
+    {
+      delete[] row;
+    }
+}
+
+void
+print_vec (vec a, size_t n, size_t len)
+{
+  if (len == -1UL)
+    {
+      len = n;
+    }
+  for (size_t i = 0; i < len; i++)
+    {
+      printf ("%lf ", a[i]);
+    }
+  if (len > 0)
+    {
+      printf ("\n");
+    }
+}
+
+double
+norma_vec2 (double *r, int n)
+{
+  double sum = 0;
+  for (int i = 0; i < n; i++)
+    {
+      sum += r[i] * r[i];
+    }
+  return sqrt (sum);
+}
