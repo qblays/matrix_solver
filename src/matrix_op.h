@@ -40,4 +40,13 @@ print_matrix (double *a, size_t n);
 void
 print_matrix_b_upper (double *a, int n);
 
+void
+print_mat_beauty (int root, size_t n, size_t m, double **&rows_p,
+                  size_t len = -1, bool log = 0, int width = 8,
+                  int precision = 2);
+
+void
+print_vec (vec a, size_t n, size_t len = -1UL);
+double
+norma_vec2 (double *r, int n);
 #endif
