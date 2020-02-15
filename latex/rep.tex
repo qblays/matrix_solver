@@ -370,16 +370,60 @@ $rank = I \% comm\_size$, где $I \in \{0,...,N-1\}$
                   A[I, J] -= col[K]^T * D[K] * R[K, J]
               A[I, J] = (R[I, I]^-1)^T*D[I]*A[I, J]
 \end{verbatim}
+Нахождение $y$
+\begin{verbatim}
+for (int I = 0; I < columns_n; I++)
+{
+  if (I % commSize == rank)
+    {
+      for (size_t j = 0; j < col_width; j++)
+        {
+          double *a = columns[I];
+          double sum = 0;
+          for (size_t i = 0; i < I * m; i++)
+            {
+              sum += a[col_width * i + j] * y[i];
+            }
+          a += I * m * col_width;
+          for (size_t i = I * m; i < I * m + j; i++)
+            {
+              sum += a[get_elU (i - I * m, j, col_width)] * y[i];
+            }
+          y[I * m + j] =
+              (b[I * m + j] - sum) / a[get_elU (j, j, col_width)];
+        }
+    }
+  MPI_Bcast (y + I * m, col_width, MPI_DOUBLE, I % commSize,
+              MPI_COMM_WORLD);
+}
+\end{verbatim}
+Нахождение $x$
+\begin{verbatim}
+for (size_t i = n - 1; i < n; i--)
+{
+  buf = gather_row (rows_p, i);
+  if (rank == root)
+    {
+      double sum = 0;
+      for (size_t j = i + 1; j < n; j++)
+        {
+          sum += buf[j] * x[j];
+        }
+      x[i] = d[i] * (y[i] - d[i] * sum) / buf[i];
+    }
+}
+\end{verbatim}
+
 \subsection{Объем пересылаемых данных}
 В разложении нужно $N$ раз переслать данные общим размером равным
 размеру всей матрицы, то есть $n*(n+1)/2$.
 При нахождении вектора $y$ нужно $N$ раз переслать данные общим размером
 $n$.
-При нахождении вектора $x$ нужно $N$ раз переслать данные общим размером
-$n$.
+При нахождении вектора $x$ нужно $N * n$ раз переслать данные общим размером
+$n*(n+1)/2$.
 
-В итоге количество пересылок равно $3N$, а общий объем 
-пересылаемых данных $\frac{1}{2}n^2 + \frac{5}{2}n$.
+В итоге количество пересылок равно $2N+N*n$, а общий объем 
+пересылаемых данных $n^2 + \frac{3}{2}n$.
 \subsection{Оценка количества операций}
 По сравнению с поточной версией количество операций не изменилось.
 \end{document}

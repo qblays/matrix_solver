@@ -64,7 +64,8 @@ main (int argc, const char **argv)
 
   auto mat_body =
       std::unique_ptr<double[]> (alloc_rows (n, m, total_alloc_size, rows_p));
-  printf ("%d th process should alloc %lu\n", rank, total_alloc_size);
+  printf ("%d th process should alloc %lu(%lf MB)\n", rank, total_alloc_size,
+          (double)total_alloc_size * sizeof (double) / (1UL << 20));
 
   size_t sum = 0;
   MPI_Reduce (&total_alloc_size, &sum, 1, MPI_UNSIGNED_LONG, MPI_SUM, root,

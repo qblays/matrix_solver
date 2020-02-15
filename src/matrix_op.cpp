@@ -559,7 +559,7 @@ print_mat_beauty (int root, size_t n, size_t m, double **&rows_p, size_t len,
 void
 print_vec (vec a, size_t n, size_t len)
 {
-  if (len == -1UL)
+  if (len == -1UL || len > n)
     {
       len = n;
     }
