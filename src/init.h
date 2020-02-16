@@ -25,13 +25,23 @@ void
 print_mat_triangle (double **rows_p, size_t n, size_t m);
 
 bool
-check_args (const int argc, const char **argv);
+check_args (const int argc, char **argv);
 
 bool
 init_mat_file (double **rows_p, size_t n, size_t m, const char *filename);
 
 void
-gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **&rows_p);
+gather_row_slow (size_t i, size_t n, size_t m, int root, vec buf,
+                 double **&rows_p);
+
+void
+gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **rows_p,
+            int action = 0);
+
+void
+gather_row_runner (size_t i, size_t n, size_t m, int root, vec buf,
+                   double **&rows_p, int *recvcounts, int *recvcounts2,
+                   int *displs, double *bbuf, double *gathered);
 
 void
 gather_col (size_t j, size_t n, size_t m, int root, vec buf, double **&rows_p);

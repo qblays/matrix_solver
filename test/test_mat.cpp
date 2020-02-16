@@ -18,15 +18,16 @@ f1 (size_t i, size_t j, size_t n = 0)
 }
 
 int
-main (int argc, const char **argv)
+main (int argc, char **argv)
 {
 
-  MPI_Init (&argc, (char ***)&argv);
-  int rank, commSize;
+  MPI_Init (&argc, &argv);
+  int rank = 0, commSize;
 
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   ScopeGuard close_file = [&] () {
+    gather_row (0, 0, 0, 0, nullptr, nullptr, 1);
     MPI_Finalize ();
     printf ("finish");
     fflush (stdout);

@@ -192,7 +192,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
       //   {
       //     printf ("%lf ", buf[k]);
       //   }
-      printf ("\n");
+      // printf ("\n");
       for (int I = 0; I < columns_n; I++)
         {
           auto col_width = m;
@@ -226,8 +226,6 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
               sendcount = col_width - i % m;
               send_triangle = 1;
             }
-          printf ("sendcount = %d, offset = %lu, tr = %d, cw = %ld\n",
-                  sendcount, offset, send_triangle, col_width);
           double *a = rows_p[I];
           double *recvbuf;
           if (send_triangle)
@@ -248,7 +246,7 @@ init_mat_file_root (double **rows_p, size_t n, size_t m, const char *filename)
                 }
               else
                 {
-                  printf ("root sended buf to %d\n", I % commSize);
+                  // printf ("root sended buf to %d\n", I % commSize);
                   MPI_Send (sendbuf, sendcount, MPI_DOUBLE, I % commSize, 0,
                             MPI_COMM_WORLD);
                 }
@@ -301,26 +299,20 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
 
           // double *sendbuf;
           int sendcount;
-          size_t offset;
           bool send_triangle = 0;
           if (i <= I * m)
             {
-              offset = I * m;
               sendcount = col_width;
             }
           else if (i >= I * m + m)
             {
-              offset = 0;
               sendcount = 0;
             }
           else
             {
-              offset = i;
               sendcount = col_width - i % m;
               send_triangle = 1;
             }
-          printf ("sendcount = %d, offset = %lu, tr = %d\n", sendcount, offset,
-                  send_triangle);
           double *a = rows_p[I];
           double *recvbuf;
           if (send_triangle)
@@ -337,7 +329,7 @@ init_mat_file_others (double **rows_p, size_t n, size_t m, const char *filename)
               if (MPI_Recv (recvbuf, sendcount, MPI_DOUBLE, 0, 0,
                             MPI_COMM_WORLD, MPI_STATUS_IGNORE) == MPI_SUCCESS)
                 {
-                  printf ("successfuly received message!\n");
+                  // printf ("successfuly received message!\n");
                 }
               else
                 {
@@ -450,7 +442,7 @@ print_mat_triangle (double **rows_p, size_t n, size_t m)
 }
 
 bool
-check_args (const int argc, const char **argv)
+check_args (const int argc, char **argv)
 {
   if (argc > 1 && argc < 5)
     {
@@ -463,7 +455,8 @@ check_args (const int argc, const char **argv)
 }
 
 void
-gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **&rows_p)
+gather_row_slow (size_t i, size_t n, size_t m, int root, vec buf,
+                 double **&rows_p)
 {
   int rank, commSize;
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
@@ -503,11 +496,6 @@ gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **&rows_p)
           sendcount = col_width - i % m;
           // send_triangle = 1;
         }
-      // printf ("sendcount = %d, offset = %lu, tr = %d, cw = %ld\n \
-      //         sendbuf = % p, \
-      //         recvbuf = % p, a = %p\n ",
-      //         sendcount, offset, send_triangle, col_width, sendbuf, recvbuf,
-      //         a);
 
       recvbuf = buf + offset;
 
@@ -532,6 +520,149 @@ gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **&rows_p)
                   MPI_Send (sendbuf, sendcount, MPI_DOUBLE, root, 0,
                             MPI_COMM_WORLD);
                 }
+            }
+        }
+    }
+}
+
+void
+gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **rows_p,
+            int action)
+{
+  static int commSize;
+  static int idx = 0;
+  static int *recvcounts;
+  static int *recvcounts2;
+  static int *displs;
+  static double *bbuf;
+  static double *gathered;
+  if (idx == 0)
+    {
+      idx = 1;
+      MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+      recvcounts = new int[commSize];
+      recvcounts2 = new int[commSize];
+      displs = new int[commSize];
+      bbuf = new double[n];
+      gathered = new double[n];
+    }
+  if (action == 0)
+    gather_row_runner (i, n, m, root, buf, rows_p, recvcounts, recvcounts2,
+                       displs, bbuf, gathered);
+  else
+    {
+      delete[] recvcounts;
+      delete[] recvcounts2;
+      delete[] displs;
+      delete[] bbuf;
+      delete[] gathered;
+    }
+}
+
+void
+gather_row_runner (size_t i, size_t n, size_t m, int root, vec buf,
+                   double **&rows_p, int *recvcounts, int *recvcounts2,
+                   int *displs, double *bbuf, double *gathered)
+{
+  int rank, commSize;
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  MPI_Comm_size (MPI_COMM_WORLD, &commSize);
+  int columns_n = n / m + (n % m > 0);
+  int reminder = n - (n / m) * m;
+  size_t bbuf_size = 0;
+  for (int i = 0; i < commSize; i++)
+    {
+      recvcounts[i] = 0;
+      recvcounts2[i] = 0;
+    }
+  for (int I = 0; I < columns_n; I++)
+    {
+      auto col_width = m;
+      if (I == columns_n - 1 && reminder > 0)
+        {
+          col_width = reminder;
+        }
+      double *sendbuf;
+      int sendcount;
+      // bool send_triangle = 0;
+      double *a = rows_p[I];
+      if (i <= I * m)
+        { // send full
+          sendbuf = a + col_width * i;
+          sendcount = col_width;
+        }
+      else if (i >= I * m + m)
+        { // send nothing
+          sendbuf = nullptr;
+          sendcount = 0;
+        }
+      else
+        { // send from trian
+          auto aa = a + col_width * (i / m) * m;
+          sendbuf = &aa[get_elU (i % m, i % m, col_width)];
+          sendcount = col_width - i % m;
+          // send_triangle = 1;
+        }
+      recvcounts[I % commSize] += sendcount;
+
+      if (I % commSize == rank && sendcount > 0)
+        {
+          memcpy (bbuf + bbuf_size, sendbuf, sendcount * sizeof (double));
+          bbuf_size += sendcount;
+          assert (recvcounts[I % commSize] == (int)bbuf_size);
+        }
+    }
+  displs[0] = 0;
+  for (int i = 1; i < commSize; i++)
+    {
+      displs[i] = displs[i - 1] + recvcounts[i - 1];
+    }
+  // for (int i = 0; i < commSize; i++)
+  //   {
+  //     printf ("recvcounts[%d] = %d\ndispls[%d] = %d\n", i, recvcounts[i], i,
+  //             displs[i]);
+  //   }
+  MPI_Gatherv (bbuf, bbuf_size, MPI_DOUBLE, gathered, recvcounts, displs,
+               MPI_DOUBLE, root, MPI_COMM_WORLD);
+  if (rank == root)
+    {
+      for (int I = 0; I < columns_n; I++)
+        {
+          auto col_width = m;
+          if (I == columns_n - 1 && reminder > 0)
+            {
+              col_width = reminder;
+            }
+          double *sendbuf;
+          int sendcount;
+          size_t offset;
+          // bool send_triangle = 0;
+          double *a = &gathered[displs[I % commSize]];
+          double *recvbuf;
+          if (i <= I * m)
+            { // send full
+              offset = I * m;
+              sendbuf = a + recvcounts2[I % commSize];
+              sendcount = col_width;
+            }
+          else if (i >= I * m + m)
+            { // send nothing
+              offset = 0;
+              sendbuf = nullptr;
+              sendcount = 0;
+            }
+          else
+            { // send from trian
+              offset = i;
+              sendbuf = a + recvcounts2[I % commSize];
+              sendcount = col_width - i % m;
+            }
+          recvcounts2[I % commSize] += sendcount;
+          recvbuf = buf + offset;
+
+          if (sendcount > 0)
+            {
+              memcpy (recvbuf, sendbuf, sendcount * sizeof (double));
             }
         }
     }
@@ -618,7 +749,7 @@ init_b_get_norm (vec b, size_t n, size_t m, int root, double **&rows_p,
         }
     }
   norm = max;
-  MPI_Bcast(&norm, 1, MPI_DOUBLE, root, MPI_COMM_WORLD);
+  MPI_Bcast (&norm, 1, MPI_DOUBLE, root, MPI_COMM_WORLD);
   if (rank == root)
     {
       delete[] row;
