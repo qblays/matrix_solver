@@ -49,4 +49,6 @@ void
 print_vec (vec a, size_t n, size_t len = -1UL);
 double
 norma_vec2 (double *r, int n);
+double
+find_error (double *x, int n);
 #endif

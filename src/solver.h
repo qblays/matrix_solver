@@ -9,7 +9,7 @@ get_bl (double **&rows_p, size_t I, size_t J, size_t m, size_t l = 0)
 }
 
 bool
-cholesky_decomp_bu_thread (double **&rows_p, vec d, size_t n, size_t m,
+cholesky_decomp (double **&rows_p, vec d, size_t n, size_t m,
                            double norma);
 
 bool

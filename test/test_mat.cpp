@@ -16,6 +16,11 @@ f1 (size_t i, size_t j, size_t n = 0)
 {
   return n - std::max (i, j);
 }
+double
+hilb (size_t i, size_t j, size_t)
+{
+  return 1. / double (i + j + 1ul);
+}
 
 int
 main (int argc, char **argv)
@@ -23,18 +28,19 @@ main (int argc, char **argv)
 
   MPI_Init (&argc, &argv);
   int rank = 0, commSize;
+  initializer f = f1;
 
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   ScopeGuard close_file = [&] () {
     gather_row (0, 0, 0, 0, nullptr, nullptr, 1);
     MPI_Finalize ();
-    printf ("finish");
+    printf ("finish\n");
     fflush (stdout);
   };
   if (check_args (argc, argv) == false)
     {
-      printf ("Usage: %s n m <filename>\n", argv[0]);
+      printf_root (root, "Usage: %s n m <filename>\n", argv[0]);
       return 0;
     }
   size_t n = atoi (argv[1]);
@@ -47,10 +53,10 @@ main (int argc, char **argv)
   if (1)
     {
       printf ("rank = %d, commSize = %d\n", rank, commSize);
-      printf ("n = %lu, m = %lu, file = %s\n", n, m,
-              filename ? filename : "\0");
+      printf_root (root, "n = %lu, m = %lu, file = %s\n", n, m,
+                   filename ? filename : "\0");
 #ifdef AVX
-      printf ("AVX\n");
+      printf_root (root, "AVX\n");
 #endif
     }
   if (rank == 0)
@@ -74,7 +80,7 @@ main (int argc, char **argv)
 
   if (rank == root)
     {
-      printf ("Allocated: %lu, wanted: %lu\n", sum, n * (n + 1) / 2);
+      printf_root (root, "Allocated: %lu, wanted: %lu\n", sum, n * (n + 1) / 2);
       assert (sum == n * (n + 1) / 2);
     }
   if (filename)
@@ -86,8 +92,8 @@ main (int argc, char **argv)
         }
     }
   else
-    init_mat (rows_p, n, m, f1);
-  printf ("print given matrix\n");
+    init_mat (rows_p, n, m, f);
+  printf_root (root, "print given matrix\n");
 
   print_mat_beauty (0, n, m, rows_p, 7);
   auto workspace = std::make_unique<double[]> (5 * n);
@@ -100,29 +106,29 @@ main (int argc, char **argv)
     {
       y[i] = 0;
     }
-  printf ("init_b\n");
+  printf_root (root, "init_b\n");
   double norm_mat = 0;
   init_b_get_norm (b, n, m, 0, rows_p, norm_mat);
-  printf ("norm_mat = %lf\n", norm_mat);
+  printf_root (root, "norm_mat = %lf\n", norm_mat);
   MPI_Bcast (b, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   timeval t1, t2;
-  printf ("cholesky_decomp_bu_thread\n");
+  printf_root (root, "cholesky_decomp\n");
   gettimeofday (&t1, nullptr);
 
-  int local_res = cholesky_decomp_bu_thread (rows_p, d, n, m, norm_mat);
+  int local_res = cholesky_decomp (rows_p, d, n, m, norm_mat);
   gettimeofday (&t2, nullptr);
   // rows_p stores cholesky decomposed matrix
-  printf ("w%d: choletsky res = %d\n", rank, local_res);
+  printf_root (root, "w%d: choletsky res = %d\n", rank, local_res);
   if (check_res (0, local_res))
     return 0;
   auto elapsed = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6;
-  printf ("R: \n");
+  printf_root (root, "R: \n");
   print_mat_beauty (0, n, m, rows_p, 5, 1);
-  printf ("compute_y\n");
+  printf_root (root, "compute_y\n");
   local_res = compute_y_new (rows_p, b, y, n, m, norm_mat);
   if (check_res (0, local_res))
     return 0;
-  printf ("compute_x\n");
+  printf_root (root, "compute_x\n");
 
   local_res = compute_x (rows_p, x, y, d, n, m, norm_mat, 0);
   if (check_res (0, local_res))
@@ -134,9 +140,9 @@ main (int argc, char **argv)
       // printf ("vec y: \n");
       // print_vec (y, n, 7);
       printf ("vec x: \n");
-      print_vec (x, n, 50);
+      print_vec (x, n, 7);
     }
-  printf ("reinit mat\n");
+  printf_root (root, "reinit mat\n");
   if (filename)
     {
       if (!init_mat_file (rows_p, n, m, filename))
@@ -146,14 +152,16 @@ main (int argc, char **argv)
         }
     }
   else
-    init_mat (rows_p, n, m, f1);
+    init_mat (rows_p, n, m, f);
   find_disrep_vec (b, x, r, n, m, 0, rows_p);
   if (rank == 0)
     {
       auto resid = norma_vec2 (r, n);
+      auto error = find_error (x, n);
+
       auto fp = fopen ("log.txt", "a");
-      printf ("n=%lu, m=%lu, file=%s, Residual = %e, elapsed = %lf\n", n, m,
-              filename, resid, elapsed);
+      printf ("n=%lu, m=%lu, file=%s, Residual = %e, err= %e, elapsed = %lf\n",
+              n, m, filename, resid, error, elapsed);
       fprintf (fp, "-----Residual = %e, elapsed = %lf\n", resid, elapsed);
       fclose (fp);
     }

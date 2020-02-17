@@ -63,6 +63,8 @@ find_disrep_vec (vec b, vec x, vec r, size_t n, size_t m, int root,
 bool
 check_res (int root, int loc_res);
 
+void printf_root (int root, const char *format, ...);
+
 class ScopeGuard
 {
 public:

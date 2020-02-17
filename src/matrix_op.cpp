@@ -583,3 +583,18 @@ norma_vec2 (double *r, int n)
     }
   return sqrt (sum);
 }
+double
+find_error (double *x, int n)
+{
+  double sum = 0;
+  for (int i = 0; i < n; i++)
+    {
+      double t = x[i];
+      if (i % 2 == 0)
+        {
+          t -= 1.;
+        }
+      sum += t * t;
+    }
+  return sqrt (sum);
+}
