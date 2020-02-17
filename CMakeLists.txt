@@ -23,7 +23,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math -march=n
 OPTION(AVX "Use avx instructions" OFF)
 OPTION(ASAN "Use avx instructions" OFF)
 IF(AVX)
-    MESSAGE("USING AVX")
+    MESSAGE("USING AVX (m % 12 == 0 must hold)")
     ADD_DEFINITIONS(-DAVX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
 ENDIF(AVX)
