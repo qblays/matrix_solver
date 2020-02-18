@@ -3,4 +3,9 @@ build
 build*
 .vscode
 *.pro
+latex/rep.aux
+latex/rep.fls
+latex/rep.log
+latex/rep.synctex.gz
+latex/rep.fdb_latexmk
 CMakeLists.txt.user
