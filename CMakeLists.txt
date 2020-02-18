@@ -4,15 +4,13 @@ matrix_solver
 CXX
 )
 find_package(Threads REQUIRED)
+find_package(MPI REQUIRED)
 
 set(CMAKE_C_COMPILER mpicc)
 set(CMAKE_CXX_COMPILER mpicxx)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
-
-set(test_mpi_src "test/test_mpi.cpp" )
 set(test_mat_src "test/test_mat.cpp" "src/init.cpp" "src/matrix_op.cpp" "src/solver.cpp")
 
 
@@ -21,7 +19,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math -march=native")
 
 OPTION(AVX "Use avx instructions" OFF)
-OPTION(ASAN "Use avx instructions" OFF)
+OPTION(ASAN "Build with asan" OFF)
 IF(AVX)
     MESSAGE("USING AVX (m % 12 == 0 must hold)")
     ADD_DEFINITIONS(-DAVX)

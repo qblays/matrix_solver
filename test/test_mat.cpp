@@ -7,7 +7,6 @@
 #include <memory>
 #include <mpi.h>
 #include <sys/time.h>
-const int Tag = 0;
 const int root = 0;
 using initializer = double (*) (size_t i, size_t j, size_t);
 
@@ -32,7 +31,7 @@ main (int argc, char **argv)
 
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
-  ScopeGuard close_file = [&] () {
+  ScopeGuard on_exit = [&] () {
     gather_row (0, 0, 0, 0, nullptr, nullptr, 1);
     MPI_Finalize ();
     printf ("finish\n");
@@ -71,7 +70,7 @@ main (int argc, char **argv)
 
   auto mat_body =
       std::unique_ptr<double[]> (alloc_rows (n, m, total_alloc_size, rows_p));
-  printf ("%d th process should alloc %lu(%lf MB)\n", rank, total_alloc_size,
+  printf ("%dth process allocates %lu(%lf MB)\n", rank, total_alloc_size,
           (double)total_alloc_size * sizeof (double) / (1UL << 20));
 
   size_t sum = 0;
