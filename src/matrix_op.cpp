@@ -110,28 +110,18 @@ minus_RTDR_o1_avx_ggggg (mat A, mat R1, vec D, mat R2, int n)
         {
           auto s1 = _mm256_loadu_pd (&A[i * n + j]);
           auto s2 = _mm256_loadu_pd (&A[i * n + j + 4]);
-          auto s2_3 = _mm256_loadu_pd (&A[i * n + j + 8]);
-          auto s3 = _mm256_loadu_pd (&A[(i + 1) * n + j]);
-          auto s4 = _mm256_loadu_pd (&A[(i + 1) * n + j + 4]);
-          auto s4_3 = _mm256_loadu_pd (&A[(i + 1) * n + j + 8]);
-          auto s5 = _mm256_loadu_pd (&A[(i + 2) * n + j]);
-          auto s6 = _mm256_loadu_pd (&A[(i + 2) * n + j + 4]);
-          auto s6_3 = _mm256_loadu_pd (&A[(i + 2) * n + j + 8]);
+          auto s3 = _mm256_loadu_pd (&A[i * n + j + 8]);
+          auto s4 = _mm256_loadu_pd (&A[(i + 1) * n + j]);
+          auto s5 = _mm256_loadu_pd (&A[(i + 1) * n + j + 4]);
+          auto s6 = _mm256_loadu_pd (&A[(i + 1) * n + j + 8]);
+          auto s7 = _mm256_loadu_pd (&A[(i + 2) * n + j]);
+          auto s8 = _mm256_loadu_pd (&A[(i + 2) * n + j + 4]);
+          auto s9 = _mm256_loadu_pd (&A[(i + 2) * n + j + 8]);
           for (int k = 0; k < n; k++)
             {
-              // double coef1 = R1[k * n + i] * D[k];
-              // auto c1 = _mm256_broadcast_sd (&coef1);
-              // double coef2 = R1[k * n + i + 1] * D[k];
-              // auto c2 = _mm256_broadcast_sd (&coef2);
-              // double coef3 = R1[k * n + i + 2] * D[k];
-              // auto c3 = _mm256_broadcast_sd (&coef3);
               auto Dk = _mm256_broadcast_sd (&D[k]);
-
-              // double coef1 = R1[k * n + i] * D[k];
               auto c1 = _mm256_broadcast_sd (&R1[k * n + i]);
-              // double coef2 = R1[k * n + i + 1] * D[k];
               auto c2 = _mm256_broadcast_sd (&R1[k * n + i + 1]);
-              // double coef3 = R1[k * n + i + 2] * D[k];
               auto c3 = _mm256_broadcast_sd (&R1[k * n + i + 2]);
               c1 = _mm256_mul_pd (c1, Dk);
               c2 = _mm256_mul_pd (c2, Dk);
@@ -141,67 +131,23 @@ minus_RTDR_o1_avx_ggggg (mat A, mat R1, vec D, mat R2, int n)
               auto c2_3 = _mm256_loadu_pd (&R2[k * n + j + 8]);
               s1 = _mm256_sub_pd (s1, _mm256_mul_pd (c1, c2_1));
               s2 = _mm256_sub_pd (s2, _mm256_mul_pd (c1, c2_2));
-              s2_3 = _mm256_sub_pd (s2_3, _mm256_mul_pd (c1, c2_3));
-              s3 = _mm256_sub_pd (s3, _mm256_mul_pd (c2, c2_1));
-              s4 = _mm256_sub_pd (s4, _mm256_mul_pd (c2, c2_2));
-              s4_3 = _mm256_sub_pd (s4_3, _mm256_mul_pd (c2, c2_3));
-              s5 = _mm256_sub_pd (s5, _mm256_mul_pd (c3, c2_1));
-              s6 = _mm256_sub_pd (s6, _mm256_mul_pd (c3, c2_2));
-              s6_3 = _mm256_sub_pd (s6_3, _mm256_mul_pd (c3, c2_3));
+              s3 = _mm256_sub_pd (s3, _mm256_mul_pd (c1, c2_3));
+              s4 = _mm256_sub_pd (s4, _mm256_mul_pd (c2, c2_1));
+              s5 = _mm256_sub_pd (s5, _mm256_mul_pd (c2, c2_2));
+              s6 = _mm256_sub_pd (s6, _mm256_mul_pd (c2, c2_3));
+              s7 = _mm256_sub_pd (s7, _mm256_mul_pd (c3, c2_1));
+              s8 = _mm256_sub_pd (s8, _mm256_mul_pd (c3, c2_2));
+              s9 = _mm256_sub_pd (s9, _mm256_mul_pd (c3, c2_3));
             }
           _mm256_storeu_pd (&A[i * n + j], s1);
           _mm256_storeu_pd (&A[i * n + j + 4], s2);
-          _mm256_storeu_pd (&A[i * n + j + 8], s2_3);
-          _mm256_storeu_pd (&A[(i + 1) * n + j], s3);
-          _mm256_storeu_pd (&A[(i + 1) * n + j + 4], s4);
-          _mm256_storeu_pd (&A[(i + 1) * n + j + 8], s4_3);
-          _mm256_storeu_pd (&A[(i + 2) * n + j], s5);
-          _mm256_storeu_pd (&A[(i + 2) * n + j + 4], s6);
-          _mm256_storeu_pd (&A[(i + 2) * n + j + 8], s6_3);
-        }
-    }
-}
-
-void
-minus_RTDRu_o1_avx_ggggg (mat A, mat R1, vec D, mat R2, int n)
-{
-  for (int i = 0; i < n - 0; i += 1)
-    {
-      int j;
-
-      for (j = i; j < n - 15; j += 16)
-        {
-          auto s1 = _mm256_loadu_pd (&A[get_elU (i, j, n)]);
-          auto s2 = _mm256_loadu_pd (&A[get_elU (i, j + 4, n)]);
-          auto s2_3 = _mm256_loadu_pd (&A[get_elU (i, j + 8, n)]);
-          auto s2_4 = _mm256_loadu_pd (&A[get_elU (i, j + 12, n)]);
-          for (int k = 0; k < n; k++)
-            {
-              auto Dk = _mm256_broadcast_sd (&D[k]);
-              auto c1 = _mm256_broadcast_sd (&R1[k * n + i]);
-              c1 = _mm256_mul_pd (c1, Dk);
-              auto c2_1 = _mm256_loadu_pd (&R2[k * n + j]);
-              auto c2_2 = _mm256_loadu_pd (&R2[k * n + j + 4]);
-              auto c2_3 = _mm256_loadu_pd (&R2[k * n + j + 8]);
-              auto c2_4 = _mm256_loadu_pd (&R2[k * n + j + 12]);
-              s1 = _mm256_sub_pd (s1, _mm256_mul_pd (c1, c2_1));
-              s2 = _mm256_sub_pd (s2, _mm256_mul_pd (c1, c2_2));
-              s2_3 = _mm256_sub_pd (s2_3, _mm256_mul_pd (c1, c2_3));
-              s2_4 = _mm256_sub_pd (s2_4, _mm256_mul_pd (c1, c2_4));
-            }
-          _mm256_storeu_pd (&A[get_elU (i, j, n)], s1);
-          _mm256_storeu_pd (&A[get_elU (i, j + 4, n)], s2);
-          _mm256_storeu_pd (&A[get_elU (i, j + 8, n)], s2_3);
-          _mm256_storeu_pd (&A[get_elU (i, j + 12, n)], s2_4);
-        }
-      for (; j < n; j++)
-        {
-          double sum = 0;
-          for (int k = 0; k < n; k++)
-            {
-              sum += R1[k * n + i] * R1[k * n + j] * D[k];
-            }
-          A[get_elU (i, j, n)] -= sum;
+          _mm256_storeu_pd (&A[i * n + j + 8], s3);
+          _mm256_storeu_pd (&A[(i + 1) * n + j], s4);
+          _mm256_storeu_pd (&A[(i + 1) * n + j + 4], s5);
+          _mm256_storeu_pd (&A[(i + 1) * n + j + 8], s6);
+          _mm256_storeu_pd (&A[(i + 2) * n + j], s7);
+          _mm256_storeu_pd (&A[(i + 2) * n + j + 4], s8);
+          _mm256_storeu_pd (&A[(i + 2) * n + j + 8], s9);
         }
     }
 }
@@ -502,6 +448,9 @@ print_mat_beauty (int root, size_t n, size_t m, double **&rows_p, size_t len,
   MPI_Comm_size (MPI_COMM_WORLD, &commSize);
   if (len == -1UL || len > n)
     len = n;
+  auto print_format = [&] (double number) {
+    printf (log ? "% *.*e " : "%*.*lf ", width, precision, number);
+  };
 
   double *row = nullptr;
   if (rank == root)
@@ -521,8 +470,7 @@ print_mat_beauty (int root, size_t n, size_t m, double **&rows_p, size_t len,
             }
           for (size_t j = i; j < len; j++)
             {
-              log ? printf ("% *.*e ", width, precision, row[j])
-                  : printf ("%*.*lf ", width, precision, row[j]);
+              print_format (row[j]);
             }
           printf ("\n");
         }
@@ -544,8 +492,7 @@ print_mat_beauty (int root, size_t n, size_t m, double **&rows_p, size_t len,
             }
           for (size_t j = i; j < n; j++)
             {
-              log ? printf ("% *.*e ", width, precision, row[j])
-                  : printf ("%*.*lf ", width, precision, row[j]);
+              print_format (row[j]);
             }
           printf ("\n");
         }

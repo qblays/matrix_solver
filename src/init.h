@@ -31,10 +31,6 @@ bool
 init_mat_file (double **rows_p, size_t n, size_t m, const char *filename);
 
 void
-gather_row_slow (size_t i, size_t n, size_t m, int root, vec buf,
-                 double **&rows_p);
-
-void
 gather_row (size_t i, size_t n, size_t m, int root, vec buf, double **rows_p,
             int action = 0);
 
@@ -45,12 +41,6 @@ gather_row_runner (size_t i, size_t n, size_t m, int root, vec buf,
 
 void
 gather_col (size_t j, size_t n, size_t m, int root, vec buf, double **&rows_p);
-
-void
-test_bcast_root (int a);
-
-void
-test_bcast_others ();
 
 void
 init_b_get_norm (vec b, size_t n, size_t m, int root, double **&rows_p,
@@ -73,17 +63,9 @@ public:
   {
   }
 
-  ScopeGuard (ScopeGuard &&other) : fn_ (std::move (other.fn_))
-  {
-    other.fn_ = nullptr;
-  }
+  ScopeGuard (ScopeGuard &&other);
 
-  ~ScopeGuard ()
-  {
-    // must not throw
-    if (fn_)
-      fn_ ();
-  }
+  ~ScopeGuard ();
 
   ScopeGuard (const ScopeGuard &) = delete;
   void

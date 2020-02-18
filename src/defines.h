@@ -8,7 +8,6 @@ constexpr double EPS = 1.e-14;
 constexpr int MAX = 8;
 
 
-
 inline size_t
 get_elU (size_t i, size_t j, size_t n)
 {

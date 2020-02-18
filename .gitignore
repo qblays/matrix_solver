@@ -2,3 +2,5 @@ lib
 build
 build*
 .vscode
+*.pro
+CMakeLists.txt.user

@@ -16,9 +16,7 @@ bool
 cholesky_decomp_U (mat a, vec d, int n, double norma);
 
 bool
-compute_y (double **&rows_p, vec b, vec y, size_t n, size_t m, double norma);
-bool
-compute_y_new (double **&rows_p, vec b, vec y, size_t n, size_t m,
+compute_y (double **&rows_p, vec b, vec y, size_t n, size_t m,
                double norma);
 
 bool

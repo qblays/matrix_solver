@@ -16,4 +16,5 @@ cmake --build .        # Build all default targets.
 mpirun -np 2 xterm -hold -e gdb -ex run --args ./test_mat 10 7 # Debug run
 mpirun -np 2 xterm -hold -e ./test_mat 10 7
 mpirun -np 4 konsole --hide-menubar --hold -e ./test_mat 30 15
+mpirun -np 2 ./test_mat 1000 48
 ```
