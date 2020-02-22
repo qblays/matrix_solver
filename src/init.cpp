@@ -1,5 +1,6 @@
 #include "init.h"
 #include <memory>
+#include <cstdarg>
 size_t
 compute_alloc_size (size_t n, size_t m)
 {
