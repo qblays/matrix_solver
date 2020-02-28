@@ -4,6 +4,7 @@ Solves symmetric matrices using Cholesky decomposition.
 - MPI support
 - AVX support
 # Build from sources
+Run gen_build.sh or
 ```
 git clone https://github.com/qblays/matrix_solver
 mkdir build; cd build  # Create a build directory.
