@@ -16,7 +16,7 @@ set(test_mat_src "test/test_mat.cpp" "src/init.cpp" "src/matrix_op.cpp" "src/sol
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -pedantic -Wall -Wcast-qual")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -march=native")
 
 OPTION(AVX "Use avx instructions" OFF)
 OPTION(ASAN "Build with asan" OFF)

@@ -6,36 +6,36 @@ minus_RTDR_o1 (mat __restrict A, mat __restrict R1, vec __restrict D,
                mat __restrict R2, int n)
 {
   for (int i = 0; i < n; i++)
-    {
-      int j = 0;
-      for (j = 0; j < n - 1; j += 2)
+      {
+        int j = 0;
+        for (j = 0; j < n - 3; j += 4)
+          {
+            double sum1 = 0;
+            double sum2 = 0;
+            double sum3 = 0;
+            double sum4 = 0;
+            for (int k = 0; k < n; k++)
+              {
+                sum1 += R1[k * n + i] * R2[k * n + j] * D[k];
+                sum2 += R1[k * n + i] * R2[k * n + j + 1] * D[k];
+                sum3 += R1[k * n + i] * R2[k * n + j + 2] * D[k];
+                sum4 += R1[k * n + i] * R2[k * n + j + 3] * D[k];
+              }
+            A[i * n + j] -= sum1;
+            A[i * n + j + 1] -= sum2;
+            A[i * n + j + 2] -= sum3;
+            A[i * n + j + 3] -= sum4;
+          }
+        for (; j < n; j += 1)
         {
           double sum1 = 0;
-          double sum2 = 0;
-          // double sum3 = 0;
-          // double sum4 = 0;
           for (int k = 0; k < n; k++)
             {
               sum1 += R1[k * n + i] * R2[k * n + j] * D[k];
-              sum2 += R1[k * n + i] * R2[k * n + j + 1] * D[k];
-              // sum3 += R1[k * n + i] * R2[k * n + j + 2] * D[k];
-              // sum4 += R1[k * n + i] * R2[k * n + j + 3] * D[k];
-            }
-          A[i * n + j] -= sum1;
-          A[i * n + j + 1] -= sum2;
-          // A[i * n + j + 2] -= sum3;
-          // A[i * n + j + 3] -= sum4;
-        }
-      for (; j < n - 0; j += 1)
-        {
-          double sum1 = 0;
-          for (int k = 0; k < n; k++)
-            {
-              sum1 += R1[k * n + i] * R2[k * n + j] * D[k];
             }
           A[i * n + j] -= sum1;
         }
-    }
+      }
 }
 
 void
@@ -247,12 +247,13 @@ reverse_upper (mat A, mat B, int n, double norma)
 
   for (int i = n - 1; i >= 0; i--)
     {
-      B[get_elU (i, i, n)] = 1 / A[get_elU (i, i, n)];
-      int j;
       if (is_double_too_small (A[get_elU (i, i, n)], EPS * norma))
         {
           return 1;
         }
+      B[get_elU (i, i, n)] = 1 / A[get_elU (i, i, n)];
+      int j;
+
       for (j = i + 1; j < n - 1; j += 2)
         {
           double sum1 = 0;

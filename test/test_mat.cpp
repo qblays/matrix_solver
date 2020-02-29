@@ -128,11 +128,11 @@ main (int argc, char **argv)
   auto elapsed = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6;
   printf_root (root, "R: \n");
   print_mat_beauty (0, n, m, rows_p, 5, 1);
-  // printf_root (root, "compute_y\n");
+   printf_root (root, "compute_y\n");
   local_res = compute_y (rows_p, b, y, n, m, norm_mat);
   if (check_res (0, local_res))
     return 0;
-  // printf_root (root, "compute_x\n");
+   printf_root (root, "compute_x\n");
 
   local_res = compute_x (rows_p, x, y, d, n, m, norm_mat, 0);
   if (check_res (0, local_res))
@@ -143,8 +143,8 @@ main (int argc, char **argv)
       // print_vec (b, n, 7);
       // printf ("vec y: \n");
       // print_vec (y, n, 7);
-      // printf ("answer vec x: \n");
-      // print_vec (x, n, 7);
+       printf ("answer vec x: \n");
+       print_vec (x, n, 7);
     }
   printf_root (root, "reinit mat\n");
   if (filename && filename[0] != '\0')
